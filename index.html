@@ -1,153 +1,174 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>CyberShield Password Analyzer</title>
+  <title>Cyber Threat Intelligence Dashboard</title>
 
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #0b1220;
+      margin: 0;
+      font-family: Arial;
+      background: #070b14;
       color: white;
       display: flex;
-      justify-content: center;
-      align-items: center;
+    }
+
+    /* LEFT PANEL */
+    .left {
+      width: 35%;
       height: 100vh;
-      margin: 0;
+      background: #0f172a;
+      padding: 25px;
+      box-sizing: border-box;
+      border-right: 1px solid #1f2937;
     }
 
-    .container {
-      background: #121a2b;
-      padding: 30px;
-      border-radius: 16px;
-      width: 420px;
-      box-shadow: 0 0 25px rgba(0,0,0,0.6);
+    /* RIGHT PANEL */
+    .right {
+      width: 65%;
+      padding: 25px;
+      box-sizing: border-box;
     }
 
-    h1 {
-      font-size: 20px;
-      margin-bottom: 5px;
-    }
-
-    .sub {
-      font-size: 13px;
-      color: #9ca3af;
-      margin-bottom: 20px;
+    h2 {
+      margin-top: 0;
     }
 
     input {
       width: 100%;
       padding: 12px;
-      border-radius: 10px;
+      border-radius: 8px;
       border: none;
-      outline: none;
-      margin-bottom: 15px;
-      font-size: 14px;
+      margin-top: 10px;
+      background: #1e293b;
+      color: white;
     }
 
     button {
       width: 100%;
+      margin-top: 15px;
       padding: 12px;
       border: none;
-      border-radius: 10px;
-      background: #22c55e;
-      font-weight: bold;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
       cursor: pointer;
+      font-weight: bold;
     }
 
-    .bar {
-      height: 10px;
-      background: #1f2937;
+    .panel {
+      background: #111827;
+      padding: 15px;
       border-radius: 10px;
-      margin-top: 15px;
-      overflow: hidden;
+      margin-bottom: 10px;
+      border-left: 4px solid #334155;
     }
 
-    .fill {
-      height: 100%;
-      width: 0%;
-      transition: 0.3s;
+    .safe { border-left-color: #22c55e; }
+    .warn { border-left-color: #f59e0b; }
+    .danger { border-left-color: #ef4444; }
+
+    .title {
+      font-size: 14px;
+      color: #94a3b8;
     }
 
-    .result {
-      margin-top: 15px;
+    .value {
+      margin-top: 5px;
       font-size: 14px;
     }
 
     .score {
+      font-size: 28px;
+      font-weight: bold;
       margin-top: 10px;
-      font-size: 13px;
-      color: #9ca3af;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 5px 10px;
-      border-radius: 8px;
-      margin-top: 10px;
-      font-size: 12px;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="container">
-    <h1>🛡️ CyberShield Analyzer</h1>
-    <div class="sub">Evaluate password security using real-world patterns</div>
+<!-- LEFT SIDE -->
+<div class="left">
+  <h2>🛡️ URL Threat Scanner</h2>
+  <p class="title">Enter URL for deep analysis</p>
 
-    <input type="text" id="password" placeholder="Enter password">
+  <input type="text" id="url" placeholder="https://example.com">
 
-    <button onclick="analyze()">Analyze Security</button>
+  <button onclick="scan()">Run Analysis</button>
 
-    <div class="bar">
-      <div id="fill" class="fill"></div>
-    </div>
+  <div class="score" id="score">0/100</div>
+</div>
 
-    <div class="result" id="result"></div>
-    <div class="score" id="score"></div>
-    <div id="badge"></div>
-  </div>
+<!-- RIGHT SIDE -->
+<div class="right">
+  <h3>📊 Security Report</h3>
 
-  <script>
-    function analyze() {
-      let pw = document.getElementById("password").value;
-      let score = 0;
+  <div id="report"></div>
+</div>
 
-      // Common weak passwords
-      let weakList = ["123456", "password", "12345678", "qwerty"];
+<script>
+  function scan() {
+    let url = document.getElementById("url").value.toLowerCase();
+    let report = document.getElementById("report");
+    let scoreBox = document.getElementById("score");
 
-      if (pw.length >= 8) score += 25;
-      if (/[A-Z]/.test(pw)) score += 15;
-      if (/[0-9]/.test(pw)) score += 15;
-      if (/[^A-Za-z0-9]/.test(pw)) score += 25;
-      if (!weakList.includes(pw)) score += 20;
+    let score = 100;
+    let logs = [];
 
-      let fill = document.getElementById("fill");
-      let result = document.getElementById("result");
-      let scoreText = document.getElementById("score");
-      let badge = document.getElementById("badge");
-
-      fill.style.width = score + "%";
-
-      if (score < 40) {
-        fill.style.background = "#ef4444";
-        result.innerText = "❌ Weak password — vulnerable to brute-force attacks";
-        badge.innerHTML = "<span class='badge' style='background:#ef4444;'>HIGH RISK</span>";
-      } 
-      else if (score < 75) {
-        fill.style.background = "#f59e0b";
-        result.innerText = "⚠️ Moderate security — improve complexity";
-        badge.innerHTML = "<span class='badge' style='background:#f59e0b;'>MEDIUM RISK</span>";
-      } 
-      else {
-        fill.style.background = "#22c55e";
-        result.innerText = "✅ Strong password — good security practice";
-        badge.innerHTML = "<span class='badge' style='background:#22c55e;'>SECURE</span>";
-      }
-
-      scoreText.innerText = "Security Score: " + score + "/100";
+    // SECURITY RULES
+    if (!url.startsWith("https")) {
+      score -= 25;
+      logs.push(["⚠ Protocol Risk", "No HTTPS encryption detected"]);
     }
-  </script>
+
+    if (url.includes("@")) {
+      score -= 20;
+      logs.push(["⚠ Obfuscation", "URL contains '@' symbol"]);
+    }
+
+    if (url.length > 80) {
+      score -= 10;
+      logs.push(["⚠ Structure Risk", "Unusually long URL"]);
+    }
+
+    if (url.includes("login") || url.includes("verify")) {
+      score -= 20;
+      logs.push(["⚠ Phishing Pattern", "Suspicious keyword detected"]);
+    }
+
+    if (url.includes("bit.ly") || url.includes("tinyurl")) {
+      score -= 20;
+      logs.push(["⚠ Hidden Redirect", "URL shortener detected"]);
+    }
+
+    if (logs.length === 0) {
+      logs.push(["✔ Clean Result", "No threats detected"]);
+    }
+
+    // SCORE DISPLAY
+    scoreBox.innerText = score + "/100";
+
+    // CLEAR REPORT
+    report.innerHTML = "";
+
+    // BUILD DASHBOARD
+    logs.forEach(l => {
+      let div = document.createElement("div");
+      div.className = "panel";
+
+      if (score > 70) div.classList.add("safe");
+      else if (score > 40) div.classList.add("warn");
+      else div.classList.add("danger");
+
+      div.innerHTML = `
+        <div class="title">${l[0]}</div>
+        <div class="value">${l[1]}</div>
+      `;
+
+      report.appendChild(div);
+    });
+  }
+</script>
 
 </body>
 </html>
